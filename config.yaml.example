@@ -1,0 +1,53 @@
+# KRONOS Configuration Template
+# Rename this file to config.yaml and update the fields.
+
+# 1. Target Active Directory Configuration (On-Premises)
+active_directory:
+  domain_controller: "dc01.domain.local" # IP or FQDN of the Domain Controller
+  domain_name: "domain.local" # AD Domain Name
+  ldap_port: 389 # 389 (LDAP) or 636 (LDAPS)
+  use_ssl: false # Set true for LDAPS
+
+  # Audit credentials (requires read access to LDAP to list target SPNs or accounts)
+  username: "domain\\security_auditor"
+  password: ""
+
+# 2. Target Entra ID Configuration (Cloud)
+entra_id:
+  tenant_id: "00000000-0000-0000-0000-000000000000"
+  client_id: "00000000-0000-0000-0000-000000000000"
+  client_secret: ""
+
+# 3. SIEM Detection Verification Configurations
+siem:
+  provider: "mock" # Option: "mock", "splunk", "elastic", "sentinel"
+  propagation_delay_seconds: 60 # Wait time for logs to ingest into SIEM
+
+  splunk:
+    host: "splunk-server.domain.local"
+    port: 8089 # Splunk Management Port (REST API)
+    username: "admin"
+    password: ""
+    verify_ssl: false
+    index: "security"
+
+  elastic:
+    host: "https://elasticsearch.domain.local:9200"
+    api_key: ""
+    verify_ssl: false
+    index: "winlogbeat-*" # Or custom security logs index
+
+  sentinel:
+    tenant_id: "00000000-0000-0000-0000-000000000000"
+    client_id: "00000000-0000-0000-0000-000000000000"
+    client_secret: ""
+    workspace_id: "00000000-0000-0000-0000-000000000000"
+
+# 4. Report Settings
+reporting:
+  output_dir: "./reports/output"
+  format: "html" # "html" or "json"
+
+# Live actions remain disabled unless both this value and the CLI confirmation are set.
+execution:
+  allow_live_actions: false

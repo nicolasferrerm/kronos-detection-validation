@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRONOS Purple Team Detection Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #080C14;
+            --card-bg: #0F1626;
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --accent-purple: #8B5CF6;
+            --accent-purple-glow: rgba(139, 92, 246, 0.15);
+            --success-green: #10B981;
+            --success-glow: rgba(16, 185, 129, 0.2);
+            --danger-red: #EF4444;
+            --danger-glow: rgba(239, 68, 68, 0.2);
+            --border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 2.5rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: 0.1rem;
+            background: linear-gradient(135deg, #A78BFA, var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metadata-badge {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--accent-purple);
+        }
+
+        .stat-card.detected::before {
+            background-color: var(--success-green);
+        }
+
+        .stat-card.undetected::before {
+            background-color: var(--danger-red);
+        }
+
+        .stat-title {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-desc {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .result-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-header {
+            padding: 1.25rem 1.5rem;
+            background-color: rgba(255, 255, 255, 0.01);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .result-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .result-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .result-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 9999px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .status-badge.detected {
+            background-color: var(--success-glow);
+            color: var(--success-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 10px var(--success-glow);
+        }
+
+        .status-badge.undetected {
+            background-color: var(--danger-glow);
+            color: var(--danger-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 10px var(--danger-glow);
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .result-body {
+            padding: 1.5rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-block h4 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-block p {
+            font-size: 0.9375rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .details-box {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8125rem;
+            margin-bottom: 1rem;
+            color: #E5E7EB;
+            overflow-x: auto;
+        }
+
+        .mitigation-box {
+            background-color: rgba(139, 92, 246, 0.04);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .mitigation-title {
+            color: #C084FC;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .mitigation-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .mitigation-list li {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.375rem;
+            position: relative;
+            padding-left: 1.25rem;
+            line-height: 1.4;
+        }
+
+        .mitigation-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-purple);
+        }
+
+        details.json-viewer {
+            margin-top: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        details.json-viewer summary {
+            padding: 0.5rem 1rem;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            user-select: none;
+            outline: none;
+        }
+
+        details.json-viewer pre {
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #34D399;
+            overflow-x: auto;
+            border-top: 1px solid var(--border-color);
+            max-height: 250px;
+        }
+
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span>⚡</span> KRONOS PURPLE REPORT
+            </div>
+            <div class="metadata-badge">
+                EXECUTION TIME: {{ timestamp }}
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Total Emulations</div>
+                <div class="stat-value">{{ summary.total_runs }}</div>
+                <div class="stat-desc">Attack vectors executed</div>
+            </div>
+            <div class="stat-card detected">
+                <div class="stat-title">Detected</div>
+                <div class="stat-value">{{ summary.detected }}</div>
+                <div class="stat-desc">Telemetry found in SIEM</div>
+            </div>
+            <div class="stat-card undetected">
+                <div class="stat-title">Undetected (Gaps)</div>
+                <div class="stat-value">{{ summary.undetected }}</div>
+                <div class="stat-desc">Security points blind spots</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Detection Rate</div>
+                <div class="stat-value">{{ summary.rate }}%</div>
+                <div class="stat-desc">Overall control effectiveness</div>
+            </div>
+        </div>
+
+        <h3 class="section-title">🛡️ Security Controls Validation Log</h3>
+
+        <div class="results-list">
+            {% for result in results %}
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-title-group">
+                        <div class="result-name">{{ result.emulator.name }}</div>
+                        <div class="result-meta">MITRE: {{ result.emulator.mitre_id }} | Target Event Code: {{ result.emulator.event_id }}</div>
+                    </div>
+                    <div>
+                        {% if result.verifier.detected %}
+                        <span class="status-badge detected">DETECTED</span>
+                        {% else %}
+                        <span class="status-badge undetected">BLIND SPOT</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="result-body">
+                    <div class="grid-2">
+                        <!-- Emulation Side -->
+                        <div class="info-block">
+                            <h4>1. Attack Emulation (Red Team)</h4>
+                            <p><strong>Status:</strong> Success (Safe simulation run)</p>
+                            <p><strong>Target Identity:</strong> <code>{{ result.emulation_result.username_targeted }}</code></p>
+                            <p><strong>Execution Details:</strong></p>
+                            <div class="details-box">
+Target Host: {{ result.emulation_result.details.domain_controller }}
+Encryption: {{ result.emulation_result.details.encryption_requested }}
+Message: {{ result.emulation_result.details.result_msg }}
+                            </div>
+                        </div>
+
+                        <!-- Verification Side -->
+                        <div class="info-block">
+                            <h4>2. Control Verification (Blue Team)</h4>
+                            <p><strong>SIEM Provider:</strong> {{ result.verifier_name }}</p>
+                            <p><strong>Verification query:</strong></p>
+                            <div class="details-box">
+{{ result.verifier.query_used }}
+                            </div>
+                            <p><strong>Detections discovered:</strong> {{ result.verifier.log_entries_found }} record(s)</p>
+                        </div>
+                    </div>
+
+                    <!-- Mitigation / Remediation Recommendations -->
+                    <div class="mitigation-box">
+                        <div class="mitigation-title">💡 Defensive Mitigation Steps (Remediation)</div>
+                        <ul class="mitigation-list">
+                            {% if result.emulator.event_id == "4768" %}
+                            <li>Disable Kerberos Pre-Authentication only for service accounts that explicitly require it. Periodically audit User Account Control (UAC) flags.</li>
+                            <li>Enforce strong, long passwords (minimum 25+ characters) for any account with pre-authentication disabled to resist offline cracking.</li>
+                            <li>Transition vulnerable service accounts to Group Managed Service Accounts (gMSA) to automate complex password rotations.</li>
+                            {% elif result.emulator.event_id == "4769" %}
+                            <li>Transition SPNs from user accounts to computer accounts or Group Managed Service Accounts (gMSA) which have 120-character passwords.</li>
+                            <li>Configure Kerberos policy to enforce AES256-CTS-HMAC-SHA1-96 encryption, disabling weak RC4 (0x17) support.</li>
+                            <li>Implement honey-SPNs: Create fake accounts with SPNs and alert on any TGS requested for them (ideal high-fidelity detection indicator).</li>
+                            {% else %}
+                            <li>Configure Azure Entra ID to require administrator approval for all application consent requests (Disable user consent for multi-tenant apps).</li>
+                            <li>Implement conditional access policies restricting registration of apps only to compliant/managed devices.</li>
+                            <li>Regularly audit OAuth app permissions using Azure AD PowerShell and check for anomalous data access behavior.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <!-- Collapsible JSON raw logs -->
+                    {% if result.verifier.raw_logs %}
+                    <details class="json-viewer">
+                        <summary>View Raw SIEM Log Payload</summary>
+                        <pre><code>{{ result.verifier.raw_logs_json }}</code></pre>
+                    </details>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <footer>
+            KRONOS Purple Teaming Engine • Developed by Nicolas Ferrer • Personal Brand Portfolio Project
+        </footer>
+    </div>
+</body>
+</html>
